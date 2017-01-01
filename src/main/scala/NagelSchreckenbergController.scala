@@ -1,7 +1,6 @@
-package own.controllers
 import org.scalajs.dom._
-import org.scalajs.dom.html.{Button, Div, Input}
-import own.models.NagelSchreckenberg
+import org.scalajs.dom.html.{Button, Div}
+import ui._
 
 import scala.util.{Random, Try}
 import scala.scalajs.js.timers._
@@ -9,42 +8,29 @@ import scala.scalajs.js.timers._
 object NagelSchreckenbergController {
   val rowWidth = 150
   var timeout : SetTimeoutHandle = null
+  var iterationNumber = 1
 
-  def wrapped(n: Node) = {
-    val c = document.createElement("div")
-    c.appendChild(n)
-  }
-
-  def setupConfigBox(): Element = {
-    val configBox = document.createElement("div")
-    configBox.id = "container"
-    configBox.appendChild(WidthBox.setupUI)
-    configBox.appendChild(DensityBox.setupUI)
-    configBox.appendChild(ProbabilityBox.setupUI)
-    configBox.appendChild(SpeedBox.setupUI)
-    configBox.appendChild(SpeedStepBox.setupUI)
-    configBox.appendChild(MinimumTimeoutBox.setupUI)
-
-    val starter = document.createElement("button").asInstanceOf[Button]
-    starter.onclick = (_) => {
+  def setupConfigBox() = {
+    ConfigurationBox.create((trigger: SimulationTrigger) => {
+      iterationNumber = 1
       if(timeout != null) {
         clearTimeout(timeout)
         timeout = null
-        starter.textContent = "Od nowa"
+        trigger.stopSimulation()
+
       } else {
+        val dataBox = document.getElementById("data-box")
+        dataBox.removeChild(document.getElementById("data-table"))
+        dataBox.appendChild(setupTable)
         simulate()
-        starter.textContent = "Stop"
+        trigger.startSimulation()
       }
-    }
-
-    starter.textContent = "Rozpocznij symulację"
-    configBox.appendChild(wrapped(starter))
-
-    configBox
+    })
   }
 
   private def setupStatistics() = {
     val container = document.createElement("div").asInstanceOf[Div]
+    container.id = "statistics-box"
 
     val countBox = document.createElement("div")
     countBox.id = "count-box"
@@ -54,7 +40,47 @@ object NagelSchreckenbergController {
     avgSpeedBox.id = "speed-box"
     container.appendChild(avgSpeedBox)
 
+    val variancePerVehicleBox = document.createElement("div")
+    variancePerVehicleBox.id = "variance-box"
+    container.appendChild(variancePerVehicleBox)
+
+    val iteration = document.createElement("div")
+    iteration.id = "iteration-box"
+    container.appendChild(iteration)
+
     container
+  }
+
+
+  def setupDataTable = {
+    val dataBox = document.createElement("div")
+    dataBox.id = "data-box"
+    dataBox.appendChild(setupTable)
+
+    dataBox
+  }
+
+  private def setupTable = {
+    val dataTable = document.createElement("table")
+    dataTable.id = "data-table"
+
+    val header = document.createElement("thead")
+    dataTable.appendChild(header)
+    val row = document.createElement("tr")
+    header.appendChild(row)
+
+    val iteration = document.createElement("td")
+    iteration.textContent = "Nr iteracji"
+    val avg = document.createElement("td")
+    avg.textContent = "Średnia prędkość"
+    val div = document.createElement("td")
+    div.textContent = "Odchylenie standardowe prędkości"
+
+    row.appendChild(iteration)
+    row.appendChild(avg)
+    row.appendChild(div)
+
+    dataTable
   }
 
   def setupUI() : Element = {
@@ -64,7 +90,8 @@ object NagelSchreckenbergController {
 
     val simulationBox = document.createElement("canvas")
     simulationBox.id = "simulation-canvas"
-    wholeUi.appendChild(wrapped(simulationBox))
+    wholeUi.appendChild(simulationBox)
+    wholeUi.appendChild(setupDataTable)
 
     wholeUi
   }
@@ -84,20 +111,49 @@ object NagelSchreckenbergController {
 
   def scheduleNextStep(iteration: NagelSchreckenberg.Iteration) : Unit = {
     timeout = setTimeout(MinimumTimeoutBox.getValue) {
+      iterationNumber = iterationNumber + 1
       val state = iteration.next()
       drawRoad(state.roadState)
       scheduleNextStep(state)
     }
   }
 
+  def addDataRow(iterationNumber: Int, avgSpeed: Double, dev: Double) = {
+    val table = document.getElementById("data-table")
+    val row = document.createElement("tr")
+    table.appendChild(row)
+
+    val it = document.createElement("td")
+    it.textContent = iterationNumber.toString
+    row.appendChild(it)
+
+    val avg = document.createElement("td")
+    avg.textContent = avgSpeed.toString
+    row.appendChild(avg)
+
+    val div = document.createElement("td")
+    div.textContent = dev.toString
+    row.appendChild(div)
+  }
+
   def fillStats(road: Vector[Option[Int]]) = {
     val count = document.getElementById("count-box")
     val speed = document.getElementById("speed-box")
+    val variance = document.getElementById("variance-box")
+    val iteration = document.getElementById("iteration-box")
 
     val nonempty = road.filter(p => p.isDefined)
     count.textContent = "Liczba pojazdów: " + nonempty.length.toString + " (komórek drogi: " + road.length + ")"
-    val avgSpeed = nonempty.foldLeft(0.0)((a,b) => a + b.get)
-    speed.textContent = "Średnia prędkość: " + (avgSpeed / nonempty.length).toString
+    val avgSpeed = nonempty.foldLeft(0.0)((a,b) => a + b.get) / nonempty.length
+    speed.textContent = "Średnia prędkość: " + avgSpeed.toString
+    val dev = Math.sqrt(nonempty.foldLeft(0.0)((a,b) => Math.pow(b.get - avgSpeed, 2) + a) / nonempty.length)
+    variance.textContent = "Odchylenie standardowe populacji: " + dev.toString
+    iteration.textContent = "Iteracja: " + iterationNumber.toString
+
+    if(iterationNumber <= CountedIterationsBox.getValue) {
+      addDataRow(iterationNumber, avgSpeed, dev)
+    }
+
   }
 
   def drawRoad(road: Vector[Option[Int]]): Unit = {
@@ -122,96 +178,5 @@ object NagelSchreckenbergController {
     ctx.stroke
 
     fillStats(road)
-  }
-}
-
-object WidthBox extends LabeledBox {
-  override def getId = "width"
-  override def getLabel = "Liczba wierszy jezdni"
-  override def getMin: Double = 1
-  override def getMax: Double = 1000
-  override def getStep: Double = 1
-  override def getDefault: Double = 150
-}
-
-object DensityBox extends LabeledBox {
-  override def getId = "density"
-  override def getLabel = "Gęstość pojazdów"
-  override def getMin: Double = 0
-  override def getMax: Double = 1
-  override def getStep: Double = 0.0001
-  override def getDefault: Double = 0.1
-}
-
-object ProbabilityBox extends LabeledBox {
-  override def getId = "probability"
-  override def getLabel = "Prawdopodobieństwo spowolnienia"
-  override def getMin: Double = 0
-  override def getMax: Double = 1
-  override def getStep: Double = 0.0001
-  override def getDefault: Double = 0.2
-}
-
-object SpeedBox extends LabeledBox {
-  override def getId: String = "max-speed"
-  override def getLabel: String = "Maksymalna prędkość"
-  override def getMin: Double = 1
-  override def getMax: Double = 140
-  override def getStep: Double = 1
-  override def getDefault: Double = 5
-}
-
-object SpeedStepBox extends LabeledBox {
-  override def getId: String = "speed-step"
-  override def getLabel: String = "Krok spowalniania"
-  override def getMin: Double = 1
-  override def getMax: Double = 140
-  override def getStep: Double = 1
-  override def getDefault: Double = 1
-}
-
-object MinimumTimeoutBox extends LabeledBox {
-  override def getId: String = "minimum-timeout"
-  override def getLabel: String = "Minimalne opóźnienie między kolejnymi ramkami (ms)"
-  override def getMin: Double = 0
-  override def getMax: Double = 10000
-  override def getStep: Double = 1
-  override def getDefault: Double = 0
-}
-
-trait LabeledBox {
-  def getId : String
-  def getLabel: String
-  def getMin: Double
-  def getMax: Double
-  def getStep: Double
-  def getDefault: Double
-
-  def getValue: Double = {
-    val element = document.getElementById(getId).asInstanceOf[Input]
-    Try { element.value.toDouble }.getOrElse(getDefault)
-  }
-
-  def setupUI: Element = {
-    val container = document.createElement("div")
-    container.id = "container-" + getId
-
-    val label = document.createElement("label")
-    label.setAttribute("for", getId)
-    label.textContent = getLabel
-
-    val input = document.createElement("input").asInstanceOf[Input]
-    input.id = getId
-    input.`type` = "number"
-    input.min = getMin.toString
-    input.max = getMax.toString
-    input.step = getStep.toString
-    input.defaultValue = getDefault.toString
-    input.maxLength = 7
-
-    container.appendChild(label)
-    container.appendChild(input)
-
-    container
   }
 }

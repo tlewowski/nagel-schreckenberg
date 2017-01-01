@@ -1,5 +1,3 @@
-package own.models
-
 object NagelSchreckenberg {
   type Speed = Int
   type Vehicle = Speed
