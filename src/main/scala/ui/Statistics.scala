@@ -5,37 +5,20 @@ import org.scalajs.dom.html.{Div, Element, Span}
 import ui.helper.HtmlCreator
 
 object Statistics {
-  def setStdDev(dev: Double): Unit = {
-    Option(document.getElementById("stddev"))
+  def setField[T](id: String, format: String)(value: Double): Unit = {
+    Option(document.getElementById(id))
       .foreach(elem => {
-        elem.textContent = f"$dev%8.5f"
+        elem.textContent = format.format(value)
       })
+
   }
 
-  def setIteration(iterationNumber: Int): Unit = {
-    Option(document.getElementById("iteration"))
-      .foreach(elem => {
-        elem.textContent = iterationNumber.toString
-      })
-  }
-
-  def setCount(vehicles: Int, road: Int): Unit = {
-    Option(document.getElementById("road-count"))
-      .foreach(elem => {
-        elem.textContent = road.toString
-      })
-
-    Option(document.getElementById("vehicles-count"))
-      .foreach(elem => {
-        elem.textContent = vehicles.toString
-      })
-  }
-
-  def setAvgSpeed(avgSpeed: Double): Unit = {
-    Option(document.getElementById("speed"))
-      .foreach(elem => {
-        elem.textContent = f"$avgSpeed%8.5f"
-      })
+  def setAvgSpeed(avgSpeed: Double): Unit = setField("speed", "%8.5f")(avgSpeed)
+  def setStdDev(stdDev: Double): Unit = setField("stddev", "%8.5f")(stdDev)
+  def setIteration(iteration: Int): Unit = setField("iteration", "%5.0f")(iteration.toDouble)
+  def setCount(vehiclesCount: Int, roadLength: Int): Unit = {
+    setField("vehicles-count", "%5.0f")(vehiclesCount.toDouble)
+    setField("road-count", "%5.0f")(vehiclesCount.toDouble)
   }
 
   def setupUI(): Element = {

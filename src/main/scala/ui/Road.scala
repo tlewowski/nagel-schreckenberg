@@ -6,6 +6,7 @@ import ui.helper.HtmlCreator
 
 object Road {
   val cellCountPerRow = 150
+  val cellSizeInPixels = 5
 
   def setupUI(): Element = {
 
@@ -13,7 +14,7 @@ object Road {
 
     val simulationCanvas = document.createElement("canvas")
     simulationCanvas.id = "simulation-canvas"
-    simulationCanvas.setAttribute("width", "600px")
+    simulationCanvas.setAttribute("width", cellCountPerRow * cellSizeInPixels + "px")
 
     roadBox.appendChild(simulationCanvas)
 
@@ -21,21 +22,20 @@ object Road {
   }
 
   def draw(road: Vector[Option[Int]]): Unit = {
-    val sizeInPixels = 5
     val rows = road.length / cellCountPerRow
     val canvas = document.getElementById("simulation-canvas").asInstanceOf[html.Canvas]
     val ctx = canvas.getContext("2d").asInstanceOf[CanvasRenderingContext2D]
-    canvas.width = cellCountPerRow * sizeInPixels
-    canvas.height = rows * sizeInPixels
+    canvas.width = cellCountPerRow * cellSizeInPixels
+    canvas.height = rows * cellSizeInPixels
     ctx.strokeStyle = "red"
     ctx.lineWidth = 20
 
     road.zipWithIndex.foreach(r => {
       if (r._1.isDefined) {
-        ctx.fillRect(sizeInPixels*(r._2 % cellCountPerRow), sizeInPixels*(r._2 / cellCountPerRow), sizeInPixels, sizeInPixels)
+        ctx.fillRect(cellSizeInPixels*(r._2 % cellCountPerRow), cellSizeInPixels*(r._2 / cellCountPerRow), cellSizeInPixels, cellSizeInPixels)
       }
       else {
-        ctx.clearRect(sizeInPixels*(r._2 % cellCountPerRow), sizeInPixels*(r._2 / cellCountPerRow), sizeInPixels, sizeInPixels)
+        ctx.clearRect(cellSizeInPixels*(r._2 % cellCountPerRow), cellSizeInPixels*(r._2 / cellCountPerRow), cellSizeInPixels, cellSizeInPixels)
       }
     })
 
