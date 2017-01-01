@@ -19,9 +19,7 @@ object NagelSchreckenbergController {
         trigger.stopSimulation()
 
       } else {
-        val dataBox = document.getElementById("data-box")
-        dataBox.removeChild(document.getElementById("data-table"))
-        dataBox.appendChild(setupTable)
+        DataTable.clear()
         simulate()
         trigger.startSimulation()
       }
@@ -52,37 +50,6 @@ object NagelSchreckenbergController {
   }
 
 
-  def setupDataTable = {
-    val dataBox = document.createElement("div")
-    dataBox.id = "data-box"
-    dataBox.appendChild(setupTable)
-
-    dataBox
-  }
-
-  private def setupTable = {
-    val dataTable = document.createElement("table")
-    dataTable.id = "data-table"
-
-    val header = document.createElement("thead")
-    dataTable.appendChild(header)
-    val row = document.createElement("tr")
-    header.appendChild(row)
-
-    val iteration = document.createElement("td")
-    iteration.textContent = "Nr iteracji"
-    val avg = document.createElement("td")
-    avg.textContent = "Średnia prędkość"
-    val div = document.createElement("td")
-    div.textContent = "Odchylenie standardowe prędkości"
-
-    row.appendChild(iteration)
-    row.appendChild(avg)
-    row.appendChild(div)
-
-    dataTable
-  }
-
   def setupUI() : Element = {
     val wholeUi = document.createElement("div").asInstanceOf[Div]
     wholeUi.appendChild(setupConfigBox)
@@ -91,7 +58,7 @@ object NagelSchreckenbergController {
     val simulationBox = document.createElement("canvas")
     simulationBox.id = "simulation-canvas"
     wholeUi.appendChild(simulationBox)
-    wholeUi.appendChild(setupDataTable)
+    wholeUi.appendChild(DataTable.setupUI)
 
     wholeUi
   }
@@ -118,24 +85,6 @@ object NagelSchreckenbergController {
     }
   }
 
-  def addDataRow(iterationNumber: Int, avgSpeed: Double, dev: Double) = {
-    val table = document.getElementById("data-table")
-    val row = document.createElement("tr")
-    table.appendChild(row)
-
-    val it = document.createElement("td")
-    it.textContent = iterationNumber.toString
-    row.appendChild(it)
-
-    val avg = document.createElement("td")
-    avg.textContent = avgSpeed.toString
-    row.appendChild(avg)
-
-    val div = document.createElement("td")
-    div.textContent = dev.toString
-    row.appendChild(div)
-  }
-
   def fillStats(road: Vector[Option[Int]]) = {
     val count = document.getElementById("count-box")
     val speed = document.getElementById("speed-box")
@@ -151,9 +100,8 @@ object NagelSchreckenbergController {
     iteration.textContent = "Iteracja: " + iterationNumber.toString
 
     if(iterationNumber <= CountedIterationsBox.getValue) {
-      addDataRow(iterationNumber, avgSpeed, dev)
+      DataTable.addDataRow(iterationNumber, avgSpeed, dev)
     }
-
   }
 
   def drawRoad(road: Vector[Option[Int]]): Unit = {
