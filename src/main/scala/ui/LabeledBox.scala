@@ -1,7 +1,8 @@
 package ui
 
-import org.scalajs.dom.html.Input
+import org.scalajs.dom.html.{Div, Input}
 import org.scalajs.dom.{Element, document}
+import ui.helper.HtmlCreator
 
 import scala.util.Try
 
@@ -26,8 +27,7 @@ trait LabeledBox {
   }
 
   def setupUI(simulationTrigger: SimulationTrigger): Element = {
-    val container = document.createElement("div")
-    container.id = "container-" + getId
+    val container = HtmlCreator.create[Div]("container-" + getId)
     container.classList.add("form-group")
 
     val label = document.createElement("label")

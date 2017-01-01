@@ -1,11 +1,12 @@
 package ui
 
+import org.scalajs.dom.html.Div
 import org.scalajs.dom.{Element, document}
+import ui.helper.HtmlCreator
 
 object DataTable {
   def setupUI(): Element = {
-    val dataBox = document.createElement("div")
-    dataBox.id = "data-box"
+    val dataBox = HtmlCreator.create[Div]("data-box")
     dataBox.appendChild(setupHeader)
 
     dataBox
@@ -14,7 +15,7 @@ object DataTable {
   def clear(): Unit = {
     val dataBox = document.getElementById("data-box")
     dataBox.removeChild(document.getElementById("data-table"))
-    dataBox.appendChild(setupUI)
+    dataBox.appendChild(setupHeader)
   }
 
   def addDataRow(iterationNumber: Int, avgSpeed: Double, dev: Double): Unit = {
@@ -46,11 +47,11 @@ object DataTable {
     val row = document.createElement("tr")
     header.appendChild(row)
 
-    val iteration = document.createElement("td")
+    val iteration = document.createElement("th")
     iteration.textContent = "Nr iteracji"
-    val avg = document.createElement("td")
+    val avg = document.createElement("th")
     avg.textContent = "Średnia prędkość"
-    val div = document.createElement("td")
+    val div = document.createElement("th")
     div.textContent = "Odchylenie standardowe prędkości"
 
     row.appendChild(iteration)

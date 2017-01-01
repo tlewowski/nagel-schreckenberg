@@ -2,6 +2,7 @@ package ui
 
 import org.scalajs.dom.{Element, document}
 import org.scalajs.dom.html.{Button, Div}
+import ui.helper.HtmlCreator
 
 object SimulationTriggeringButtons extends SimulationTrigger {
   var invalid = false
@@ -47,8 +48,7 @@ object SimulationTriggeringButtons extends SimulationTrigger {
   }
 
   def setupUI(triggerCallback: (SimulationTrigger) => Unit ): Element = {
-    val box = document.createElement("div").asInstanceOf[Div]
-    box.id = "trigger-box"
+    val box = HtmlCreator.create[Div]("trigger-box")
 
     val starter = document.createElement("button").asInstanceOf[Button]
     starter.onclick = (_) => triggerCallback(SimulationTriggeringButtons)

@@ -1,4 +1,22 @@
+body {
+  background-color: #e2e2e2;
+}
+
 #params-box {
   width: 400px;
 }
 
+#application-box {
+  width: 1400px;
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  margin: 0 auto;
+  margin-top: 50px;
+}
+
+#simulation-canvas {
+  border: 2px dashed;
+  margin-left: 10px;
+  margin-right: 10px;
+}
