@@ -58,7 +58,7 @@ object CountedIterationsBox extends LabeledBox {
   override def getId: String = "counted-iterations"
   override def getLabel: String = "Liczba iteracji do zapisania w tabeli"
   override def getMin: Double = 0
-  override def getMax: Double = 10000
+  override def getMax: Double = 1000000
   override def getStep: Double = 1
   override def getDefault: Double = 150
 }

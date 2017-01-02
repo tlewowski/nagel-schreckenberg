@@ -18,7 +18,8 @@ object Statistics {
   def setIteration(iteration: Int): Unit = setField("iteration", "%5.0f")(iteration.toDouble)
   def setCount(vehiclesCount: Int, roadLength: Int): Unit = {
     setField("vehicles-count", "%5.0f")(vehiclesCount.toDouble)
-    setField("road-count", "%5.0f")(vehiclesCount.toDouble)
+    setField("road-count", "%5.0f")(roadLength.toDouble)
+    setField("actual-density", "%5.4f")(vehiclesCount.toDouble / roadLength.toDouble)
   }
 
   def setupUI(): Element = {
@@ -26,6 +27,7 @@ object Statistics {
     container.classList.add("jumbotron")
     container.appendChild(StatBox.createStat("road-count", "Liczba komórek drogi: "))
     container.appendChild(StatBox.createStat("vehicles-count", "Liczba pojazdów: "))
+    container.appendChild(StatBox.createStat("actual-density", "Faktyczna gęstość pojazdów: "))
     container.appendChild(StatBox.createStat("speed", "Średnia prędkość: "))
     container.appendChild(StatBox.createStat("stddev", "Odchylenie standardowe prędkości: "))
     container.appendChild(StatBox.createStat("iteration", "Iteracja: "))
